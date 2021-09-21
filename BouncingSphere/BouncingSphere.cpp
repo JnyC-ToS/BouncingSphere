@@ -113,14 +113,24 @@ struct Plane {
 	float d;
 };
 
-bool IntersectSegmentPlane(Segment segment, Plane plane, Vector3 &interPT, Vector3 &interN) {
+bool IntersectSegmentPlane(Segment segment, Plane plane, Vector3& interPT, Vector3& interN) {
 	Vector3 ab = Vector3Subtract(segment.pt2, segment.pt1);
-	float dotabn = Vector3DotProduct(ab,plane.n);
+	float dotabn = Vector3DotProduct(ab, plane.n);
 	if (approxZero(dotabn)) {
 		return false;
 	}
-	float t = (plane.d - Vector3DotProduct(segment.pt1,plane.n))/dotabn;
-	// TODO - Work in progress
+	float t = (plane.d - Vector3DotProduct(segment.pt1, plane.n)) / dotabn;
+	if (t < 0 || t > 1) {
+		return false;
+	}
+	interPT = Vector3Add(segment.pt1, Vector3Scale(ab, t));
+	if (dotabn < 0) {
+		interN = plane.n;
+	}
+	else {
+		interN = Vector3Negate(plane.n);
+	}
+	return true;
 }
 
 void MyUpdateOrbitalCamera(Camera* camera, float deltaTime) {
