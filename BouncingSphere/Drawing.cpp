@@ -355,15 +355,6 @@ void MyDrawCylinder(Quaternion q, Vector3 start, Vector3 end, float radius, int 
 		rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
 		rlVertex3f(topRight.x, topRight.y, topRight.z);
 
-		/*if (drawCaps) {
-			rlVertex3f(bottomCenter.x, bottomCenter.y, bottomCenter.z);
-			rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
-			rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-
-			rlVertex3f(topCenter.x, topCenter.y, topCenter.z);
-			rlVertex3f(topLeft.x, topLeft.y, topLeft.z);
-			rlVertex3f(topRight.x, topRight.y, topRight.z);
-		}*/
 
 		theta += delta;
 		tmpBottomLeft = bottomRight;
@@ -425,16 +416,6 @@ void MyDrawCylinderPortion(Quaternion q, Vector3 start, Vector3 end, float radiu
 		rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
 		rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
 		rlVertex3f(topRight.x, topRight.y, topRight.z);
-
-		/*if (drawCaps) {
-			rlVertex3f(bottomCenter.x, bottomCenter.y, bottomCenter.z);
-			rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
-			rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-
-			rlVertex3f(topCenter.x, topCenter.y, topCenter.z);
-			rlVertex3f(topLeft.x, topLeft.y, topLeft.z);
-			rlVertex3f(topRight.x, topRight.y, topRight.z);
-		}*/
 
 		theta += delta;
 		tmpBottomLeft = bottomRight;
@@ -499,11 +480,6 @@ void MyDrawCylinderWires(Quaternion q, Vector3 start, Vector3 end, float radius,
 		rlVertex3f(topLeft.x, topLeft.y, topLeft.z);
 
 		if (drawCaps) {
-			/*rlVertex3f(bottomCenter.x, bottomCenter.y, bottomCenter.z);
-			rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-
-			rlVertex3f(topCenter.x, topCenter.y, topCenter.z);
-			rlVertex3f(topLeft.x, topLeft.y, topLeft.z);*/
 			MyDrawDiskWires(QuaternionFromAxisAngle({0,0,1},PI),bottomCenter,1,nSegments,color);
 			MyDrawDiskWires(QuaternionIdentity(),topCenter,1,nSegments,color);
 		}
@@ -570,15 +546,12 @@ void MyDrawCylinderWiresPortion(Quaternion q, Vector3 start, Vector3 end, float 
 		
 
 		if (drawCaps && i != nSegments) {
-			/*rlVertex3f(bottomCenter.x, bottomCenter.y, bottomCenter.z);
-			rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-
-			rlVertex3f(topCenter.x, topCenter.y, topCenter.z);
-			rlVertex3f(topLeft.x, topLeft.y, topLeft.z);*/
 			MyDrawDiskWiresPortion(QuaternionFromAxisAngle({1,0,0},PI),bottomCenter,1,startSegments,endSegments,nSegments,color);
 			MyDrawDiskWiresPortion(QuaternionIdentity(),topCenter,1,startSegments,endSegments,nSegments,color);
 		}
 
+
+		// For the last wire drawing
 		rlVertex3f(bottomCenter.x, bottomCenter.y, bottomCenter.z);
 		rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
 
@@ -719,7 +692,6 @@ void MyDrawDiskWires(Quaternion q, Vector3 center, float radius, int nSegments, 
 
 	float theta = 0;
 	Vector3 bottomCenter = { 0, 0, 0 };
-	//Vector3 topCenter = { 0, 1, 0 };
 	Vector3 tmpBottomLeft = Cylindrical{ 1, theta, 0 }.toCartesian();
 
 	for (int i = 0; i < nSegments; i++) {
