@@ -22,6 +22,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "Models.h"
+#include "Drawing.h"
 
 #if defined(PLATFORM_DESKTOP)
 #define GLSL_VERSION            330
@@ -102,13 +103,14 @@ int main(int argc, char* argv[]) {
 			DrawSphere({ 10, 0, 0 }, .2f, RED);
 			DrawSphere({ 0, 10, 0 }, .2f, GREEN);
 			DrawSphere({ 0, 0, 10 }, .2f, BLUE);
-			// Quaternion qOrient = QuaternionFromAxisAngle(Vector3Normalize({ 1, 3, -4 }), time);
-			// MyDrawSphereEx2(qOrient, { 0, 2, 0 }, 3, 20, 20, BLUE);
+		
+			//Quaternion qOrient = QuaternionFromAxisAngle(Vector3Normalize({ 1, 3, -4 }), time);
+			//MyDrawSphere(qOrient, { 0, 2, 0 }, 3, 20, 20, BLUE);
 			// MyDrawSphereWiresEx2(qOrient, { 0, 2, 0 }, 3, 20, 20, BLACK);
-
+			
 			// Sphere sphere = { { 0, 1, 2 }, 3 };
 			// sphere.draw(qOrient, BLUE);
-			Cylinder cylinder = { { 0, 1, 2 }, { 1, 4, 3 }, 3 };
+			/*Cylinder cylinder = { { 0, 1, 2 }, { 1, 4, 3 }, 3 };
 			cylinder.draw(cylinder.quaternionFromAxisAngle(time), BLUE);
 			Segment segment = { { 5, 6, -1 - 3 * sinf(time / 7) }, { -3, -1, 0 } };
 			segment.draw();
@@ -118,7 +120,18 @@ int main(int argc, char* argv[]) {
 			if (IntersectSegmentCylinderFinite(segment, cylinder, interPt, interNormal)) {
 				MyDrawSphere({ 0 }, interPt, .1f, 10, 10, RED);
 				DrawLine3D(interPt, Vector3Add(interPt, interNormal), GREEN);
-			}
+			}*/
+			Quaternion q = QuaternionFromAxisAngle(Vector3Normalize({ 1, 3, -4 }),time);
+			//MyDrawDisk(q, { 0, 2, 0 }, 3, 20, GREEN); 
+			//MyDrawDisk({0} ,interPt ,.2f ,10,PINK);
+			//MyDrawDiskWires(q,{0,2,0},3,20,BLACK);
+
+			//MyDrawSpherePortion(q,{0,2,0},3,0,PI,20,0,PI/2,20,RED);
+			//MyDrawSphereWiresPortion(q,{0,2,0},3,0,PI,20,0,PI/2,20,BLACK);
+
+			MyDrawCylinderPortion(q,{0,2,0},{0,6,0},PI,0,0.5*PI,20,true,PINK);
+			MyDrawCylinderWiresPortion(q,{0,2,0},{0,6,0},PI,0,0.5*PI,20,true,BLACK);
+			
 		}
 		EndMode3D();
 
