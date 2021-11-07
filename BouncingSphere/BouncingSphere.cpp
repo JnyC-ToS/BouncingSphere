@@ -121,7 +121,8 @@ int main(int argc, char* argv[]) {
 				MyDrawSphere({ 0 }, interPt, .1f, 10, 10, RED);
 				DrawLine3D(interPt, Vector3Add(interPt, interNormal), GREEN);
 			}*/
-			Quaternion q = QuaternionFromAxisAngle(Vector3Normalize({ 1, 3, -4 }),time);
+			//Quaternion q = QuaternionFromAxisAngle(Vector3Normalize({ 1, 3, -4 }), time);
+			//Quaternion q = QuaternionIdentity();
 			//MyDrawDisk(q, { 0, 2, 0 }, 3, 20, GREEN); 
 			//MyDrawDisk({0} ,interPt ,.2f ,10,PINK);
 			//MyDrawDiskWires(q,{0,2,0},3,20,BLACK);
@@ -129,9 +130,10 @@ int main(int argc, char* argv[]) {
 			//MyDrawSpherePortion(q,{0,2,0},3,0,PI,20,0,PI/2,20,RED);
 			//MyDrawSphereWiresPortion(q,{0,2,0},3,0,PI,20,0,PI/2,20,BLACK);
 
-			MyDrawCylinderPortion(q,{0,2,0},{0,6,0},PI,0,0.5*PI,20,true,PINK);
-			MyDrawCylinderWiresPortion(q,{0,2,0},{0,6,0},PI,0,0.5*PI,20,true,BLACK);
-			
+			//MyDrawCylinderPortion(q, { 0, 2, 0 }, { 0, 6, 0 }, PI, PI / 2, PI, 20, true, PINK);
+			//MyDrawCylinderWiresPortion(q, { 0, 2, 0 }, { 0, 6, 0 }, PI, PI / 2, PI, 20, true, BLACK);
+
+			MySuperTest();
 		}
 		EndMode3D();
 

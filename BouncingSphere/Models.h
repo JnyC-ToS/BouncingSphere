@@ -84,6 +84,8 @@ struct Plane {
 	float d;
 
 	void draw(Vector3 center, Color color) {
+		if (Vector3DotProduct(Vector3Subtract(center, Vector3Scale(this->n, this->d)), this->n) != 0)
+			return;
 		Quaternion q = QuaternionFromVector3ToVector3({ 0, 1, 0 }, this->n);
 		Vector2 size = { 2, 2 };
 		MyDrawQuad(q, center, size, color);
@@ -96,6 +98,8 @@ struct Sphere {
 	float r;
 
 	void draw(Quaternion q, Color color) {
+		if (this->r < 0)
+			return;
 		MyDrawSphere(q, this->center, this->r, 20, 20, color);
 		MyDrawSphereWires(q, this->center, this->r, 20, 20, DARKGRAY);
 	}
@@ -107,6 +111,8 @@ struct Cylinder {
 	float r;
 
 	void draw(Quaternion q, Color color) {
+		if (this->r < 0)
+			return;
 		MyDrawCylinder(q, this->pt1, this->pt2, this->r, 40, true, color);
 		MyDrawCylinderWires(q, this->pt1, this->pt2, this->r, 40, true, DARKGRAY);
 	}
