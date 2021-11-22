@@ -23,6 +23,7 @@
 #include "raymath.h"
 #include "Models.h"
 #include "Drawing.h"
+#include <string>
 
 #if defined(PLATFORM_DESKTOP)
 #define GLSL_VERSION            330
@@ -111,16 +112,20 @@ int main(int argc, char* argv[]) {
 			// Sphere sphere = { { 0, 1, 2 }, 3 };
 			// sphere.draw(qOrient, BLUE);
 			/*Cylinder cylinder = { { 0, 1, 2 }, { 1, 4, 3 }, 3 };
-			cylinder.draw(cylinder.quaternionFromAxisAngle(time), BLUE);
-			Segment segment = { { 5, 6, -1 - 3 * sinf(time / 7) }, { -3, -1, 0 } };
+			cylinder.draw(cylinder.quaternionFromAxisAngle(time), BLUE, CYLINDER_CAPS_ROUNDED);
+			Segment segment = { { 4, 6, -1 - 5 * sinf(time / 6) }, { -3, -1, 0 } };
 			segment.draw();
 			Vector3 interPt;
 			Vector3 interNormal;
 			// if (IntersectSegmentSphere(segment, sphere, interPt, interNormal)) {
-			if (IntersectSegmentCylinderFinite(segment, cylinder, interPt, interNormal)) {
-				MyDrawSphere({ 0 }, interPt, .1f, 10, 10, RED);
+			if (IntersectSegmentCylinderRounded(segment, cylinder, interPt, interNormal)) {
+				dist = Vector3Distance(cylinder.pt2, interPt);
+				MyDrawSphere(QuaternionIdentity(), interPt, .1f, 10, 10, RED);
 				DrawLine3D(interPt, Vector3Add(interPt, interNormal), GREEN);
-			}*/
+			}
+
+			Vector3 top = Vector3Add(cylinder.pt1, Vector3Scale(cylinder.axisNormalized(), cylinder.r + Vector3Length(cylinder.axis())));
+			DrawSphere(top, 0.5, RED);*/
 			//Quaternion q = QuaternionFromAxisAngle(Vector3Normalize({ 1, 3, -4 }), time);
 			//Quaternion q = QuaternionIdentity();
 			//MyDrawDisk(q, { 0, 2, 0 }, 3, 20, GREEN); 
@@ -133,7 +138,28 @@ int main(int argc, char* argv[]) {
 			//MyDrawCylinderPortion(q, { 0, 2, 0 }, { 0, 6, 0 }, PI, PI / 2, PI, 20, true, PINK);
 			//MyDrawCylinderWiresPortion(q, { 0, 2, 0 }, { 0, 6, 0 }, PI, PI / 2, PI, 20, true, BLACK);
 
-			MySuperTest();
+			/*float r = 4;
+			//Sphere sphere = { { 0, 0, 0}, r };
+			//sphere.draw(QuaternionIdentity(), BLUE);
+			MyDrawSpherePortion(QuaternionIdentity(), { 0, 0, 0 }, r, 0, 2 * PI, 40, 0, PI / 2, 10, BLUE);
+			MyDrawSphereWiresPortion(QuaternionIdentity(), { 0, 0, 0 }, r, 0, 2 * PI, 40, 0, PI / 2, 10, DARKGRAY);
+			DrawSphere({ r, 0, 0 }, 0.05, BLACK);
+			DrawSphere({ 0, r, 0 }, 0.05, BLACK);
+			DrawSphere({ 0, 0, r }, 0.05, BLACK);
+			DrawSphere({ -r, 0, 0 }, 0.05, BLACK);
+			DrawSphere({ 0, -r, 0 }, 0.05, BLACK);
+			DrawSphere({ 0, 0, -r }, 0.05, BLACK);*/
+
+			BoxRounded box = { localReferential({ 2, 3, -1 }, QuaternionFromAxisAngle({ 4, 9, 2 }, PI / 3)), { 0.5, 1.25, 2 }, .5f };
+			box.draw(BLUE);
+			Segment segment = { { 4, 6, -3 - 4 * sinf(time / 6) }, { -3, -1, 0 } };
+			segment.draw();
+			Vector3 interPt;
+			Vector3 interNormal;
+			if (IntersectSegmentBoxRounded(segment, box, interPt, interNormal)) {
+				MyDrawSphere(QuaternionIdentity(), interPt, .1f, 10, 10, RED);
+				DrawLine3D(interPt, Vector3Add(interPt, interNormal), GREEN);
+			}
 		}
 		EndMode3D();
 

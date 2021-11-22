@@ -18,7 +18,7 @@ void MyDrawQuad(Quaternion q, Vector3 center, Vector2 size, Color color) {
 		rlglDraw();
 
 	rlPushMatrix();
-	prepareTransformationMatrix({ size.x / 2, 0, size.y / 2 }, q, center);
+	prepareTransformationMatrix({ size.x, 0, size.y }, q, center);
 
 	rlBegin(RL_TRIANGLES);
 	rlColor4ub(color.r, color.g, color.b, color.a);
@@ -41,7 +41,7 @@ void MyDrawQuadWires(Quaternion q, Vector3 center, Vector2 size, Color color) {
 		rlglDraw();
 
 	rlPushMatrix();
-	prepareTransformationMatrix({ size.x / 2, 0, size.y / 2 }, q, center);
+	prepareTransformationMatrix({ size.x, 0, size.y }, q, center);
 
 	rlBegin(RL_LINES);
 	rlColor4ub(color.r, color.g, color.b, color.a);
@@ -194,11 +194,11 @@ void MyDrawSphereWiresPortion(Quaternion q, Vector3 center, float radius, float 
 	rlPopMatrix();
 }
 
-void MyDrawCylinder(Quaternion q, Vector3 start, Vector3 end, float radius, int nSegments, bool drawCaps, Color color) {
-	MyDrawCylinderPortion(q, start, end, radius, 0, 2 * PI, nSegments, drawCaps, color);
+void MyDrawCylinder(Quaternion q, Vector3 start, Vector3 end, float radius, int nSegments, int capsType, Color color) {
+	MyDrawCylinderPortion(q, start, end, radius, 0, 2 * PI, nSegments, capsType, color);
 }
 
-void MyDrawCylinderPortion(Quaternion q, Vector3 start, Vector3 end, float radius, float startSegments, float endSegments, int nSegments, bool drawCaps, Color color) {
+void MyDrawCylinderPortion(Quaternion q, Vector3 start, Vector3 end, float radius, float startSegments, float endSegments, int nSegments, int capsType, Color color) {
 	if (nSegments < 3)
 		return;
 
@@ -209,7 +209,8 @@ void MyDrawCylinderPortion(Quaternion q, Vector3 start, Vector3 end, float radiu
 	rlPushMatrix();
 	Vector3 axis = Vector3Subtract(end, start);
 	Quaternion q1 = QuaternionFromVector3ToVector3({ 0, 1, 0 }, Vector3Normalize(axis));
-	prepareTransformationMatrix({ radius, Vector3Length(axis), radius }, QuaternionMultiply(q, q1), start);
+	Quaternion qf = QuaternionMultiply(q, q1);
+	prepareTransformationMatrix({ radius, Vector3Length(axis), radius }, qf, start);
 
 	rlBegin(RL_TRIANGLES);
 	rlColor4ub(color.r, color.g, color.b, color.a);
@@ -238,7 +239,7 @@ void MyDrawCylinderPortion(Quaternion q, Vector3 start, Vector3 end, float radiu
 		tmpBottomLeft = bottomRight;
 	}
 
-	if (drawCaps) {
+	if (capsType == CYLINDER_CAPS_FLAT) {
 		Quaternion aroundX = QuaternionFromAxisAngle({ 1, 0, 0 }, PI);
 		Quaternion aroundY = QuaternionFromAxisAngle({ 0, 1, 0 }, startSegments);
 		MyDrawDiskPortion(QuaternionMultiply(aroundY, aroundX), { 0, 0, 0 }, 1, startSegments, endSegments, nSegments, color);
@@ -247,24 +248,30 @@ void MyDrawCylinderPortion(Quaternion q, Vector3 start, Vector3 end, float radiu
 
 	rlEnd();
 	rlPopMatrix();
+
+	if (capsType == CYLINDER_CAPS_ROUNDED) {
+        MyDrawSpherePortion(qf, start, radius, startSegments, endSegments, nSegments, PI / 2, PI, nSegments / 4, color);
+        MyDrawSpherePortion(qf, end, radius, startSegments, endSegments, nSegments, 0, PI / 2, nSegments / 4, color);
+    }
 }
 
-void MyDrawCylinderWires(Quaternion q, Vector3 start, Vector3 end, float radius, int nSegments, bool drawCaps, Color color) {
-	MyDrawCylinderWiresPortion(q, start, end, radius, 0, 2 * PI, nSegments, drawCaps, color);
+void MyDrawCylinderWires(Quaternion q, Vector3 start, Vector3 end, float radius, int nSegments, int capsType, Color color) {
+	MyDrawCylinderWiresPortion(q, start, end, radius, 0, 2 * PI, nSegments, capsType, color);
 }
 
-void MyDrawCylinderWiresPortion(Quaternion q, Vector3 start, Vector3 end, float radius, float startSegments, float endSegments, int nSegments, bool drawCaps, Color color) {
+void MyDrawCylinderWiresPortion(Quaternion q, Vector3 start, Vector3 end, float radius, float startSegments, float endSegments, int nSegments, int capsType, Color color) {
 	if (nSegments < 3)
 		return;
 
-	int numVertex = nSegments * (2 + (drawCaps ? 0 : 4)) + 2;
+	int numVertex = nSegments * (2 + (capsType == CYLINDER_CAPS_FLAT ? 0 : 4)) + 2;
 	if (rlCheckBufferLimit(numVertex))
 		rlglDraw();
 
 	rlPushMatrix();
 	Vector3 axis = Vector3Subtract(end, start);
 	Quaternion q1 = QuaternionFromVector3ToVector3({ 0, 1, 0 }, Vector3Normalize(axis));
-	prepareTransformationMatrix({ radius, Vector3Length(axis), radius }, QuaternionMultiply(q, q1), start);
+	Quaternion qf = QuaternionMultiply(q, q1);
+	prepareTransformationMatrix({ radius, Vector3Length(axis), radius }, qf, start);
 
 	rlBegin(RL_LINES);
 	rlColor4ub(color.r, color.g, color.b, color.a);
@@ -284,7 +291,7 @@ void MyDrawCylinderWiresPortion(Quaternion q, Vector3 start, Vector3 end, float 
 		rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
 		rlVertex3f(topLeft.x, topLeft.y, topLeft.z);
 
-		if (!drawCaps) {
+		if (capsType != CYLINDER_CAPS_FLAT) {
 			rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
             rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
 
@@ -302,7 +309,7 @@ void MyDrawCylinderWiresPortion(Quaternion q, Vector3 start, Vector3 end, float 
 	rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
 	rlVertex3f(topRight.x, topRight.y, topRight.z);
 
-	if (drawCaps) {
+	if (capsType == CYLINDER_CAPS_FLAT) {
 		Quaternion aroundX = QuaternionFromAxisAngle({ 1, 0, 0 }, PI);
 		Quaternion aroundY = QuaternionFromAxisAngle({ 0, 1, 0 }, startSegments);
 		MyDrawDiskWiresPortion(QuaternionMultiply(aroundY, aroundX), { 0, 0, 0 }, 1, startSegments, endSegments, nSegments, color);
@@ -311,6 +318,11 @@ void MyDrawCylinderWiresPortion(Quaternion q, Vector3 start, Vector3 end, float 
 
 	rlEnd();
 	rlPopMatrix();
+
+	if (capsType == CYLINDER_CAPS_ROUNDED) {
+    	MyDrawSphereWiresPortion(qf, start, radius, startSegments, endSegments, nSegments, PI / 2, PI, nSegments / 4, color);
+    	MyDrawSphereWiresPortion(qf, end, radius, startSegments, endSegments, nSegments, 0, PI / 2, nSegments / 4, color);
+    }
 }
 
 void MyDrawDisk(Quaternion q, Vector3 center, float radius, int nSegments, Color color) {
@@ -397,101 +409,4 @@ void MyDrawDiskWiresPortion(Quaternion q, Vector3 center, float radius, float st
 
 	rlEnd();
 	rlPopMatrix();
-}
-
-void MySuperTest() {
-	Quaternion q = QuaternionIdentity();
-	Quaternion q1 = q;
-	Quaternion q2 = QuaternionFromAxisAngle({ 0, 0, 1 }, PI / 2);
-	Quaternion q3 = QuaternionFromAxisAngle({ 1, 0, 0 }, PI / 2);
-	Quaternion q4 = QuaternionFromAxisAngle({ 1, 0, 0 }, PI);
-	Quaternion q5 = QuaternionFromAxisAngle({ -1, 0, 0 }, PI / 2);
-	Quaternion q6 = QuaternionFromAxisAngle({ 0, 0, -1 }, PI / 2);
-
-
-	// FACES
-	MyDrawQuad(q1, { 0, 2, 0 }, { 2, 2 }, BLUE);
-	MyDrawQuadWires(q1, { 0, 2, 0 }, { 2, 2 }, GRAY);
-
-	MyDrawQuad(q2, { -2, 0, 0 }, { 2, 2 }, BLUE);
-	MyDrawQuadWires(q2, { -2, 0, 0 }, { 2, 2 }, GRAY);
-
-	MyDrawQuad(q3, { 0, 0, 2 }, { 2, 2 }, BLUE);
-	MyDrawQuadWires(q3, { 0, 0, 2 }, { 2, 2 }, GRAY);
-
-	MyDrawQuad(q4, { 0, -2, 0 }, { 2, 2 }, BLUE);
-	MyDrawQuadWires(q4, { 0, -2, 0 }, { 2, 2 }, GRAY);
-
-	MyDrawQuad(q5, { 0, 0, -2 }, { 2, 2 }, BLUE);
-	MyDrawQuadWires(q5, { 0, 0, -2 }, { 2, 2 }, GRAY);
-
-	MyDrawQuad(q6, { 2, 0, 0 }, { 2, 2 }, BLUE);
-	MyDrawQuadWires(q6, { 2, 0, 0 }, { 2, 2 }, GRAY);
-
-
-	// SOMMETS
-	MyDrawSpherePortion(q, { 1, 1, 1 }, 1, 0, PI / 2, 10, 0, PI / 2, 10, BLUE);
-	MyDrawSphereWiresPortion(q, { 1, 1, 1 }, 1, 0, PI / 2, 10, 0, PI / 2, 10, GRAY);
-
-	MyDrawSpherePortion(q, { -1, 1, 1 }, 1, PI / 2, PI, 10, 0, PI / 2, 10, BLUE);
-	MyDrawSphereWiresPortion(q, { -1, 1, 1 }, 1, PI / 2, PI, 10, 0, PI / 2, 10, GRAY);
-
-	MyDrawSpherePortion(q, { -1, 1, -1 }, 1, PI, 3 * PI / 2, 10, 0, PI / 2, 10, BLUE);
-	MyDrawSphereWiresPortion(q, { -1, 1, -1 }, 1, PI, 3 * PI / 2, 10, 0, PI / 2, 10, GRAY);
-
-	MyDrawSpherePortion(q, { 1, 1, -1 }, 1, 3 * PI / 2, 2 * PI, 10, 0, PI / 2, 10, BLUE);
-	MyDrawSphereWiresPortion(q, { 1, 1, -1 }, 1, 3 * PI / 2, 2 * PI, 10, 0, PI / 2, 10, GRAY);
-
-
-	MyDrawSpherePortion(q, { 1, -1, 1 }, 1, 0, PI / 2, 10, PI / 2, PI, 10, BLUE);
-	MyDrawSphereWiresPortion(q, { 1, -1, 1 }, 1, 0, PI / 2, 10, PI / 2, PI, 10, GRAY);
-
-	MyDrawSpherePortion(q, { -1, -1, 1 }, 1, PI / 2, PI, 10, PI / 2, PI, 10, BLUE);
-	MyDrawSphereWiresPortion(q, { -1, -1, 1 }, 1, PI / 2, PI, 10, PI / 2, PI, 10, GRAY);
-
-	MyDrawSpherePortion(q, { -1, -1, -1 }, 1, PI, 3 * PI / 2, 10, PI / 2, PI, 10, BLUE);
-	MyDrawSphereWiresPortion(q, { -1, -1, -1 }, 1, PI, 3 * PI / 2, 10, PI / 2, PI, 10, GRAY);
-
-	MyDrawSpherePortion(q, { 1, -1, -1 }, 1, 3 * PI / 2, 2 * PI, 10, PI / 2, PI, 10, BLUE);
-	MyDrawSphereWiresPortion(q, { 1, -1, -1 }, 1, 3 * PI / 2, 2 * PI, 10, PI / 2, PI, 10, GRAY);
-
-
-	// ARÊTES
-	MyDrawCylinderPortion(q, { 1, 1, 1 }, { -1, 1, 1 }, 1, 0, PI / 2, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { 1, 1, 1 }, { -1, 1, 1 }, 1, 0, PI / 2, 10, false, GRAY);
-
-	MyDrawCylinderPortion(q, { 1, 1, -1 }, { -1, 1, -1 }, 1, PI / 2, PI, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { 1, 1, -1 }, { -1, 1, -1 }, 1, PI / 2, PI, 10, false, GRAY);
-
-	MyDrawCylinderPortion(q, { 1, -1, -1 }, { -1, -1, -1 }, 1, PI, 3 * PI / 2, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { 1, -1, -1 }, { -1, -1, -1 }, 1, PI, 3 * PI / 2, 10, false, GRAY);
-
-	MyDrawCylinderPortion(q, { 1, -1, 1 }, { -1, -1, 1 }, 1, 3 * PI / 2, 2 * PI, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { 1, -1, 1 }, { -1, -1, 1 }, 1, 3 * PI / 2, 2 * PI, 10, false, GRAY);
-
-
-	MyDrawCylinderPortion(q, { 1, 1, 1 }, { 1, 1, -1 }, 1, 0, PI / 2, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { 1, 1, 1 }, { 1, 1, -1 }, 1, 0, PI / 2, 10, false, GRAY);
-
-	MyDrawCylinderPortion(q, { 1, -1, 1 }, { 1, -1, -1 }, 1, PI / 2, PI, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { 1, -1, 1 }, { 1, -1, -1 }, 1, PI / 2, PI, 10, false, GRAY);
-
-	MyDrawCylinderPortion(q, { -1, -1, 1 }, { -1, -1, -1 }, 1, PI, 3 * PI / 2, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { -1, -1, 1 }, { -1, -1, -1 }, 1, PI, 3 * PI / 2, 10, false, GRAY);
-
-	MyDrawCylinderPortion(q, { -1, 1, 1 }, { -1, 1, -1 }, 1, 3 * PI / 2, 2 * PI, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { -1, 1, 1 }, { -1, 1, -1 }, 1, 3 * PI / 2, 2 * PI, 10, false, GRAY);
-
-
-	MyDrawCylinderPortion(q, { 1, -1, 1 }, { 1, 1, 1 }, 1, 0, PI / 2, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { 1, -1, 1 }, { 1, 1, 1 }, 1, 0, PI / 2, 10, false, GRAY);
-
-	MyDrawCylinderPortion(q, { 1, -1, -1 }, { 1, 1, -1 }, 1, PI / 2, PI, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { 1, -1, -1 }, { 1, 1, -1 }, 1, PI / 2, PI, 10, false, GRAY);
-
-	MyDrawCylinderPortion(q, { -1, -1, -1 }, { -1, 1, -1 }, 1, PI, 3 * PI / 2, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { -1, -1, -1 }, { -1, 1, -1 }, 1, PI, 3 * PI / 2, 10, false, GRAY);
-
-	MyDrawCylinderPortion(q, { -1, -1, 1 }, { -1, 1, 1 }, 1, 3 * PI / 2, 2 * PI, 10, false, BLUE);
-	MyDrawCylinderWiresPortion(q, { -1, -1, 1 }, { -1, 1, 1 }, 1, 3 * PI / 2, 2 * PI, 10, false, GRAY);
 }
