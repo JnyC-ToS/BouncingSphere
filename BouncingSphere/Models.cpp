@@ -9,7 +9,7 @@ bool IntersectSegmentPlane(Segment segment, Plane plane, Vector3& interPt, Vecto
 	if (approxZero(ab_n))
 		return false;
 	float t = (plane.d - Vector3DotProduct(segment.pt1, plane.n)) / ab_n;
-	if (t < 0 || t > 1)
+	if (t < -EPSILON || t > 1 + EPSILON)
 		return false;
 	interPt = Vector3Add(segment.pt1, Vector3Scale(ab, t));
 	if (ab_n < 0)
@@ -25,7 +25,7 @@ bool IntersectSegmentQuad(Segment segment, Quad quad, Vector3& interPt, Vector3&
 	if (!IntersectSegmentPlane(segment, quad.asPlane(), interPtPlane, interNormalPlane))
 		return false;
 	Vector3 interPtLocal = GlobalToLocalPos(interPtPlane, quad.ref);
-	if (fabs(interPtLocal.x) > quad.ext.x || fabs(interPtLocal.z) > quad.ext.y)
+	if (fabs(interPtLocal.x) > quad.ext.x + EPSILON || fabs(interPtLocal.z) > quad.ext.y + EPSILON)
 		return false;
 	interPt = interPtPlane;
 	interNormal = interNormalPlane;
@@ -36,7 +36,7 @@ bool IntersectSegmentDisk(Segment segment, Disk disk, Vector3& interPt, Vector3&
 	Vector3 interPtPlane;
 	Vector3 interNormalPlane;
 	if (!IntersectSegmentPlane(segment, disk.asPlane(), interPtPlane, interNormalPlane)
-			|| Vector3LengthSqr(Vector3Subtract(interPtPlane, disk.ref.origin)) > disk.r * disk.r)
+			|| Vector3LengthSqr(Vector3Subtract(interPtPlane, disk.ref.origin)) > disk.r * disk.r + EPSILON)
 		return false;
 	interPt = interPtPlane;
 	interNormal = interNormalPlane;
@@ -59,7 +59,7 @@ bool IntersectSegmentSphere(Segment segment, Sphere sphere, Vector3& interPt, Ve
 		float deltaSqrt = sqrtf(delta);
 		t = min((-b - deltaSqrt) / (2 * a), (-b + deltaSqrt) / (2 * a));
 	}
-	if (t < 0 || t > 1)
+	if (t < -EPSILON || t > 1 + EPSILON)
 		return false;
 	interPt = Vector3Add(segment.pt1, Vector3Scale(ab, t));
 	interNormal = Vector3Normalize(Vector3Subtract(interPt, sphere.center));
@@ -88,7 +88,7 @@ bool IntersectSegmentCylinderInfinite(Segment segment, Cylinder cylinder, Vector
 		float deltaSqrt = sqrtf(delta);
 		t = min((-b - deltaSqrt) / (2 * a), (-b + deltaSqrt) / (2 * a));
 	}
-	if (t < 0 || t > 1)
+	if (t < -EPSILON || t > 1 + EPSILON)
 		return false;
 
 	interPt = Vector3Add(segment.pt1, Vector3Scale(ab, t));
@@ -109,35 +109,37 @@ bool IntersectSegmentCylinderFinite(Segment segment, Cylinder cylinder, Vector3&
 	float r2 = cylinder.r * cylinder.r;
 
 	Vector3 pm;
-	if (Vector3LengthSqr(Vector3CrossProduct(pa, u)) > r2) { // If start outside of infinite cylinder
+	if (Vector3LengthSqr(Vector3CrossProduct(pa, u)) > r2 + EPSILON) { // If start outside of infinite cylinder
 		Vector3 i = Vector3Subtract(ab, Vector3Scale(pq, Vector3DotProduct(ab, pq) / pq2));
-        Vector3 j = Vector3Subtract(pa, Vector3Scale(pq, Vector3DotProduct(pa, pq) / pq2));
+		Vector3 j = Vector3Subtract(pa, Vector3Scale(pq, Vector3DotProduct(pa, pq) / pq2));
     
-        float a = Vector3DotProduct(i, i);
-        float b = 2 * Vector3DotProduct(i, j);
-        float c = Vector3DotProduct(j, j) - r2;
+		float a = Vector3DotProduct(i, i);
+		float b = 2 * Vector3DotProduct(i, j);
+		float c = Vector3DotProduct(j, j) - r2;
     
-        float delta = b * b - 4 * a * c;
-        if (delta < -EPSILON)
-        	return false;
-        float t;
-        if (delta < EPSILON)
-        	t = -b / (2 * a);
-        else {
-        	float deltaSqrt = sqrtf(delta);
-        	t = min((-b - deltaSqrt) / (2 * a), (-b + deltaSqrt) / (2 * a));
-        }
-        if (t < 0 || t > 1)
-        	return false;
+		float delta = b * b - 4 * a * c;
+		if (delta < -EPSILON)
+			return false;
+		float t;
+		if (delta < EPSILON)
+			t = -b / (2 * a);
+		else {
+			float deltaSqrt = sqrtf(delta);
+			t = min((-b - deltaSqrt) / (2 * a), (-b + deltaSqrt) / (2 * a));
+		}
+		if (t < -EPSILON || t > 1 + EPSILON)
+			return false;
 		interPt = Vector3Add(segment.pt1, Vector3Scale(ab, t));
 		pm = Vector3Subtract(interPt, cylinder.pt1);
-	} else // Start cannot be inside the finite cylinder so only above or below
+	} else { // Start cannot be inside the finite cylinder so only above or below
+		interPt = segment.pt1;
 		pm = pa;
+	}
 
 	float pm_pq = Vector3DotProduct(pm, pq);
-	if (pm_pq < 0) { // Below cylinder
+	if (pm_pq < EPSILON) { // Below cylinder
 		return IntersectSegmentDisk(segment, cylinder.bottom(), interPt, interNormal);
-	} else if (pm_pq > pq2) { // Above cylinder
+	} else if (pm_pq > pq2 - EPSILON) { // Above cylinder
 		return IntersectSegmentDisk(segment, cylinder.top(), interPt, interNormal);
 	} else { // In cylinder, only possible when start is outside
 		float pm_u = Vector3DotProduct(pm, u);
@@ -156,7 +158,7 @@ bool IntersectSegmentCylinderRounded(Segment segment, Cylinder cylinder, Vector3
 	float r2 = cylinder.r * cylinder.r;
 
 	Vector3 pm;
-	if (Vector3LengthSqr(Vector3CrossProduct(pa, u)) > r2) { // If start outside of infinite cylinder
+	if (Vector3LengthSqr(Vector3CrossProduct(pa, u)) > r2 + EPSILON) { // If start outside of infinite cylinder
 		Vector3 i = Vector3Subtract(ab, Vector3Scale(pq, Vector3DotProduct(ab, pq) / pq2));
 		Vector3 j = Vector3Subtract(pa, Vector3Scale(pq, Vector3DotProduct(pa, pq) / pq2));
     
@@ -174,17 +176,19 @@ bool IntersectSegmentCylinderRounded(Segment segment, Cylinder cylinder, Vector3
 			float deltaSqrt = sqrtf(delta);
 			t = min((-b - deltaSqrt) / (2 * a), (-b + deltaSqrt) / (2 * a));
 		}
-		if (t < 0 || t > 1)
+		if (t < -EPSILON || t > 1 + EPSILON)
 			return false;
 		interPt = Vector3Add(segment.pt1, Vector3Scale(ab, t));
 		pm = Vector3Subtract(interPt, cylinder.pt1);
-	} else // Start cannot be inside the finite cylinder so only above or below
+	} else { // Start cannot be inside the finite cylinder so only above or below
+		interPt = segment.pt1;
 		pm = pa;
+	}
 
 	float pm_pq = Vector3DotProduct(pm, pq);
-	if (pm_pq < 0) { // Below cylinder
+	if (pm_pq < EPSILON) { // Below cylinder
 		return IntersectSegmentSphere(segment, cylinder.bottomSphere(), interPt, interNormal);
-	} else if (pm_pq > pq2) { // Above cylinder
+	} else if (pm_pq > pq2 - EPSILON) { // Above cylinder
 		return IntersectSegmentSphere(segment, cylinder.topSphere(), interPt, interNormal);
 	} else { // In cylinder, only possible when start is outside
 		float pm_u = Vector3DotProduct(pm, u);
@@ -222,7 +226,7 @@ bool IntersectSegmentBoxRounded(Segment segment, BoxRounded box, Vector3& interP
 			}
 		}
 	}
-	if (distSqr > 0) {
+	if (distSqr > -EPSILON) {
 		interPt = interPtClosest;
 		interNormal = interNormalClosest;
 		return true;

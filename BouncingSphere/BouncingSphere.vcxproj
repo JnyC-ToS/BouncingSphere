@@ -331,6 +331,12 @@
       <ClInclude Include="Models.h" />
       <ClInclude Include="Utils.h" />
     </ItemGroup>
+    <ItemGroup>
+      <Content Include="sounds\1.mp3" />
+      <Content Include="sounds\2.mp3" />
+      <Content Include="sounds\3.mp3" />
+      <Content Include="sounds\4.mp3" />
+    </ItemGroup>
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
     <ImportGroup Label="ExtensionTargets">
     </ImportGroup>

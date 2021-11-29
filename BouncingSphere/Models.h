@@ -109,6 +109,13 @@ struct ref {
 			0, 0, 0, 0
 		};
 	}
+
+	Quaternion asQuaternion() {
+		Matrix m = this->asMatrix();
+		if (m.m0 == 1 && m.m5 == 1 && m.m10 == 1 && m.m4 == 0 && m.m8 == 0 && m.m9 == 0 && m.m1 == 0 && m.m2 == 0 && m.m6 == 0)
+			return QuaternionIdentity();
+		return QuaternionFromMatrix(m);
+	}
 };
 
 Referential localReferential(Vector3 origin, Quaternion q);
@@ -155,7 +162,7 @@ struct Quad {
 	void draw(Color color) {
 		if (this->ext.x < -EPSILON || this->ext.y < -EPSILON)
 			return;
-		Quaternion q = QuaternionFromMatrix(this->ref.asMatrix());
+		Quaternion q = this->ref.asQuaternion();
 		MyDrawQuad(q, this->ref.origin, this->ext, color);
 		MyDrawQuadWires(q, this->ref.origin, this->ext, DARKGRAY);
 	}
@@ -172,7 +179,7 @@ struct Disk {
 	void draw(Color color) {
 		if (this->r < 0)
 			return;
-		Quaternion q = QuaternionFromMatrix(this->ref.asMatrix());
+		Quaternion q = this->ref.asQuaternion();
 		MyDrawDisk(q, this->ref.origin, this->r, 20, color);
 		MyDrawDiskWires(q, this->ref.origin, this->r, 20, DARKGRAY);
 	}
@@ -222,8 +229,8 @@ struct Cylinder {
 	void draw(Quaternion q, Color color, int capsType = CYLINDER_CAPS_FLAT) {
 		if (this->r < 0)
 			return;
-		MyDrawCylinder(q, this->pt1, this->pt2, this->r, 40, capsType, color);
-		MyDrawCylinderWires(q, this->pt1, this->pt2, this->r, 40, capsType, DARKGRAY);
+		MyDrawCylinder(q, this->pt1, this->pt2, this->r, 20, capsType, color);
+		MyDrawCylinderWires(q, this->pt1, this->pt2, this->r, 20, capsType, DARKGRAY);
 	}
 
 	Quaternion quaternionFromAxisAngle(float angle) {
@@ -279,9 +286,11 @@ struct BoxRounded {
 		std::vector<Quad> quads = this->listQuads();
 		for (auto quad : quads)
 			quad.draw(color);
-		std::vector<Cylinder> cylinders = this->listCylinders();
-		for (auto cylinder : cylinders)
-			cylinder.draw(QuaternionIdentity(), color, CYLINDER_CAPS_ROUNDED);
+		if (this->r > EPSILON) {
+			std::vector<Cylinder> cylinders = this->listCylinders();
+			for (auto cylinder : cylinders)
+				cylinder.draw(QuaternionIdentity(), color, CYLINDER_CAPS_ROUNDED);
+		}
 	}
 };
 

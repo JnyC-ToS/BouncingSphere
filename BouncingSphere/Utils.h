@@ -9,5 +9,7 @@
 template <typename T> int sgn(T val);
 bool approxZero(float val);
 float min(float a, float b);
+float random();
+float randPos();
 
 #endif
