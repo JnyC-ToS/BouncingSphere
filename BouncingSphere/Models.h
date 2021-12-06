@@ -13,7 +13,7 @@ struct Cylindrical {
 	float theta;
 	float y;
 
-	inline Cylindrical operator +(Cylindrical other) {
+	inline Cylindrical operator+(Cylindrical other) {
 		return { this->rho + other.rho, this->theta + other.theta, this->y + other.y };
 	}
 
@@ -27,7 +27,7 @@ struct Spherical {
 	float theta;
 	float phi;
 
-	inline Spherical operator +(Spherical other) {
+	inline Spherical operator+(Spherical other) {
 		return { this->rho + other.rho, this->theta + other.theta, this->phi + other.phi };
 	}
 
@@ -45,7 +45,7 @@ struct Cartesian {
 	float y;
 	float z;
 
-	inline Cartesian operator +(Cartesian other) {
+	inline Cartesian operator+(Cartesian other) {
 		return { this->x + other.x, this->y + other.y, this->z + other.z };
 	}
 
@@ -85,7 +85,7 @@ struct ref {
 
 	Referential operator+(Vector3 translate) {
 		return {
-			Vector3Add(this->origin, LocalToGlobalVect(translate, *this)),
+			this->origin + LocalToGlobalVect(translate, *this),
 			this->i,
 			this->j,
 			this->k
@@ -95,13 +95,13 @@ struct ref {
 	Referential operator*(Quaternion rotate) {
 		return {
 			this->origin,
-			Vector3RotateByQuaternion(this->i, rotate),
-			Vector3RotateByQuaternion(this->j, rotate),
-			Vector3RotateByQuaternion(this->k, rotate)
+			this->i * rotate,
+			this->j * rotate,
+			this->k * rotate
 		};
 	}
 
-	Matrix asMatrix() {
+	inline Matrix asMatrix() {
 		return {
 			this->i.x, this->i.y, this->i.z, 0,
 			this->j.x, this->j.y, this->j.z, 0,
@@ -126,8 +126,8 @@ struct Segment {
 	Vector3 pt1;
 	Vector3 pt2;
 
-	Vector3 asVector() {
-		return Vector3Subtract(this->pt2, this->pt1);
+	inline Vector3 asVector() {
+		return this->pt2 - this->pt1;
 	}
 
 	void draw() {
@@ -142,7 +142,7 @@ struct Plane {
 	float d;
 
 	void draw(Vector3 center, Color color) {
-		if (!approxZero(Vector3DotProduct(Vector3Subtract(center, Vector3Scale(this->n, this->d)), this->n)))
+		if (!approxZero((center - this->n * this->d) * this->n))
 			return;
 		Quaternion q = QuaternionFromVector3ToVector3({ 0, 1, 0 }, this->n);
 		Vector2 size = { 2, 2 };
@@ -155,8 +155,8 @@ struct Quad {
 	Referential ref;
 	Vector2 ext;
 
-	Plane asPlane() {
-		return { this->ref.j, Vector3DotProduct(this->ref.origin, this->ref.j) };
+	inline Plane asPlane() {
+		return { this->ref.j, this->ref.origin * this->ref.j };
 	}
 
 	void draw(Color color) {
@@ -172,8 +172,8 @@ struct Disk {
 	Referential ref;
 	float r;
 
-	Plane asPlane() {
-		return { this->ref.j, Vector3DotProduct(this->ref.origin, this->ref.j) };
+	inline Plane asPlane() {
+		return { this->ref.j, this->ref.origin * this->ref.j };
 	}
 
 	void draw(Color color) {
@@ -202,39 +202,40 @@ struct Cylinder {
 	Vector3 pt2;
 	float r;
 
-	Vector3 axis() {
-		return Vector3Subtract(this->pt2, this->pt1);
+	inline Vector3 axis() {
+		return this->pt2 - this->pt1;
 	}
 
-	Vector3 axisNormalized() {
-		return Vector3Normalize(this->axis());
+	inline Vector3 axisNormalized() {
+		return !this->axis();
 	}
 
-	Disk bottom() {
+	inline Disk bottom() {
 		return { localReferential(this->pt1, QuaternionFromVector3ToVector3({ 0, 1, 0 }, this->axisNormalized())), this->r };
 	}
 
-	Disk top() {
-		return { localReferential(this->pt2, QuaternionFromVector3ToVector3({ 0, 1, 0 }, Vector3Negate(this->axisNormalized()))), this->r };
+	inline Disk top() {
+		return { localReferential(this->pt2, QuaternionFromVector3ToVector3({ 0, 1, 0 }, -this->axisNormalized())), this->r };
 	}
 
-	Sphere bottomSphere() {
+	inline Sphere bottomSphere() {
 		return { this->pt1, this->r };
 	}
 
-	Sphere topSphere() {
+	inline Sphere topSphere() {
 		return { this->pt2, this->r };
 	}
 
-	void draw(Quaternion q, Color color, int capsType = CYLINDER_CAPS_FLAT) {
+	void draw(Color color, int capsType = CYLINDER_CAPS_FLAT, float angle = 0) {
 		if (this->r < 0)
 			return;
+		Quaternion q = this->quaternionFromAxisAngle(angle);
 		MyDrawCylinder(q, this->pt1, this->pt2, this->r, 20, capsType, color);
 		MyDrawCylinderWires(q, this->pt1, this->pt2, this->r, 20, capsType, DARKGRAY);
 	}
 
 	Quaternion quaternionFromAxisAngle(float angle) {
-		return QuaternionFromAxisAngle(Vector3Normalize(Vector3Subtract(this->pt2, this->pt1)), angle);
+		return QuaternionFromAxisAngle(!(this->pt2 - this->pt1), angle);
 	}
 };
 
@@ -256,14 +257,14 @@ struct BoxRounded {
 
 	std::vector<Cylinder> listCylinders() {
 		std::vector<Cylinder> cylinders(12);
-		Vector3 bottomFrontLeft = Vector3Add(Vector3Add(Vector3Add(this->ref.origin, Vector3Scale(this->ref.i, -this->ext.x)), Vector3Scale(this->ref.j, -this->ext.y)), Vector3Scale(this->ref.k, this->ext.z));
-		Vector3 bottomFrontRight = Vector3Add(Vector3Add(Vector3Add(this->ref.origin, Vector3Scale(this->ref.i, this->ext.x)), Vector3Scale(this->ref.j, -this->ext.y)), Vector3Scale(this->ref.k, this->ext.z));
-		Vector3 bottomBackLeft = Vector3Add(Vector3Add(Vector3Add(this->ref.origin, Vector3Scale(this->ref.i, -this->ext.x)), Vector3Scale(this->ref.j, -this->ext.y)), Vector3Scale(this->ref.k, -this->ext.z));
-		Vector3 bottomBackRight = Vector3Add(Vector3Add(Vector3Add(this->ref.origin, Vector3Scale(this->ref.i, this->ext.x)), Vector3Scale(this->ref.j, -this->ext.y)), Vector3Scale(this->ref.k, -this->ext.z));
-		Vector3 topFrontLeft = Vector3Add(Vector3Add(Vector3Add(this->ref.origin, Vector3Scale(this->ref.i, -this->ext.x)), Vector3Scale(this->ref.j, this->ext.y)), Vector3Scale(this->ref.k, this->ext.z));
-		Vector3 topFrontRight = Vector3Add(Vector3Add(Vector3Add(this->ref.origin, Vector3Scale(this->ref.i, this->ext.x)), Vector3Scale(this->ref.j, this->ext.y)), Vector3Scale(this->ref.k, this->ext.z));
-		Vector3 topBackLeft = Vector3Add(Vector3Add(Vector3Add(this->ref.origin, Vector3Scale(this->ref.i, -this->ext.x)), Vector3Scale(this->ref.j, this->ext.y)), Vector3Scale(this->ref.k, -this->ext.z));
-		Vector3 topBackRight = Vector3Add(Vector3Add(Vector3Add(this->ref.origin, Vector3Scale(this->ref.i, this->ext.x)), Vector3Scale(this->ref.j, this->ext.y)), Vector3Scale(this->ref.k, -this->ext.z));
+		Vector3 bottomFrontLeft = this->ref.origin + this->ref.i * -this->ext.x + this->ref.j * -this->ext.y + this->ref.k * this->ext.z;
+		Vector3 bottomFrontRight = this->ref.origin + this->ref.i * this->ext.x + this->ref.j * -this->ext.y + this->ref.k * this->ext.z;
+		Vector3 bottomBackLeft = this->ref.origin + this->ref.i * -this->ext.x + this->ref.j * -this->ext.y + this->ref.k * -this->ext.z;
+		Vector3 bottomBackRight = this->ref.origin + this->ref.i * this->ext.x + this->ref.j * -this->ext.y + this->ref.k * -this->ext.z;
+		Vector3 topFrontLeft = this->ref.origin + this->ref.i * -this->ext.x + this->ref.j * this->ext.y + this->ref.k * this->ext.z;
+		Vector3 topFrontRight = this->ref.origin + this->ref.i * this->ext.x + this->ref.j * this->ext.y + this->ref.k * this->ext.z;
+		Vector3 topBackLeft = this->ref.origin + this->ref.i * -this->ext.x + this->ref.j * this->ext.y + this->ref.k * -this->ext.z;
+		Vector3 topBackRight = this->ref.origin + this->ref.i * this->ext.x + this->ref.j * this->ext.y + this->ref.k * -this->ext.z;
 
 		cylinders[0] = { bottomFrontLeft, bottomFrontRight, this->r };
 		cylinders[1] = { bottomFrontRight, bottomBackRight, this->r };
@@ -289,7 +290,7 @@ struct BoxRounded {
 		if (this->r > EPSILON) {
 			std::vector<Cylinder> cylinders = this->listCylinders();
 			for (auto cylinder : cylinders)
-				cylinder.draw(QuaternionIdentity(), color, CYLINDER_CAPS_ROUNDED);
+				cylinder.draw(color, CYLINDER_CAPS_ROUNDED);
 		}
 	}
 };

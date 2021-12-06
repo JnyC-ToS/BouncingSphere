@@ -12,6 +12,14 @@ void prepareTransformationMatrix(Vector3 scale, Quaternion rotate, Vector3 trans
 	rlScalef(scale.x, scale.y, scale.z);
 }
 
+inline void vertex(Vector3 v) {
+	rlVertex3f(v.x, v.y, v.z);
+}
+
+inline void vertex(float x, float y, float z) {
+	rlVertex3f(x, y, z);
+}
+
 void MyDrawQuad(Quaternion q, Vector3 center, Vector2 size, Color color) {
 	int numVertex = 6;
 	if (rlCheckBufferLimit(numVertex))
@@ -23,13 +31,13 @@ void MyDrawQuad(Quaternion q, Vector3 center, Vector2 size, Color color) {
 	rlBegin(RL_TRIANGLES);
 	rlColor4ub(color.r, color.g, color.b, color.a);
 
-	rlVertex3f(-1, 0, -1);
-	rlVertex3f(-1, 0, 1);
-	rlVertex3f(1, 0, -1);
+	vertex(-1, 0, -1);
+	vertex(-1, 0, 1);
+	vertex(1, 0, -1);
 
-	rlVertex3f(1, 0, -1);
-	rlVertex3f(-1, 0, 1);
-	rlVertex3f(1, 0, 1);
+	vertex(1, 0, -1);
+	vertex(-1, 0, 1);
+	vertex(1, 0, 1);
 
 	rlEnd();
 	rlPopMatrix();
@@ -47,24 +55,24 @@ void MyDrawQuadWires(Quaternion q, Vector3 center, Vector2 size, Color color) {
 	rlColor4ub(color.r, color.g, color.b, color.a);
 
 	// BORDERS
-	rlVertex3f(-1, 0, -1);
-	rlVertex3f(-1, 0, 1);
+	vertex(-1, 0, -1);
+	vertex(-1, 0, 1);
 
-	rlVertex3f(-1, 0, 1);
-	rlVertex3f(1, 0, 1);
+	vertex(-1, 0, 1);
+	vertex(1, 0, 1);
 
-	rlVertex3f(1, 0, 1);
-	rlVertex3f(1, 0, -1);
+	vertex(1, 0, 1);
+	vertex(1, 0, -1);
 
-	rlVertex3f(1, 0, -1);
-	rlVertex3f(-1, 0, -1);
+	vertex(1, 0, -1);
+	vertex(-1, 0, -1);
 
 	// MIDDLE
-	rlVertex3f(-1, 0, -1);
-	rlVertex3f(1, 0, 1);
+	vertex(-1, 0, -1);
+	vertex(1, 0, 1);
 
-	rlVertex3f(-1, 0, 1);
-	rlVertex3f(1, 0, -1);
+	vertex(-1, 0, 1);
+	vertex(1, 0, -1);
 
 	rlEnd();
 	rlPopMatrix();
@@ -108,13 +116,13 @@ void MyDrawSpherePortion(Quaternion q, Vector3 center, float radius, float start
 			Vector3 topRight = vertexBufferTheta[j + 1];
 			Vector3 bottomRight = Spherical{ 1, nextTheta, nextPhi }.toCartesian();
 
-			rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-			rlVertex3f(topLeft.x, topLeft.y, topLeft.z);
-			rlVertex3f(topRight.x, topRight.y, topRight.z);
+			vertex(bottomLeft);
+			vertex(topLeft);
+			vertex(topRight);
 
-			rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-			rlVertex3f(topRight.x, topRight.y, topRight.z);
-			rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
+			vertex(bottomLeft);
+			vertex(topRight);
+			vertex(bottomRight);
 
 			theta = nextTheta;
 			vertexBufferTheta[j] = tmpBottomLeft;
@@ -162,11 +170,11 @@ void MyDrawSphereWiresPortion(Quaternion q, Vector3 center, float radius, float 
 			Vector3 bottomLeft = Spherical{ 1, theta, nextPhi }.toCartesian();
 			Vector3 topRight = vertexBufferTheta[j + 1];
 
-			rlVertex3f(topLeft.x, topLeft.y, topLeft.z);
-			rlVertex3f(topRight.x, topRight.y, topRight.z);
+			vertex(topLeft);
+			vertex(topRight);
 
-			rlVertex3f(topLeft.x, topLeft.y, topLeft.z);
-			rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
+			vertex(topLeft);
+			vertex(bottomLeft);
 
 			theta += deltaTheta;
 			vertexBufferTheta[j] = bottomLeft;
@@ -175,8 +183,8 @@ void MyDrawSphereWiresPortion(Quaternion q, Vector3 center, float radius, float 
 		Vector3 topRight = vertexBufferTheta[nSegmentsTheta];
 		Vector3 bottomRight = Spherical{ 1, endTheta, nextPhi }.toCartesian();
 
-		rlVertex3f(topRight.x, topRight.y, topRight.z);
-		rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
+		vertex(topRight);
+		vertex(bottomRight);
 
 		vertexBufferTheta[nSegmentsTheta] = bottomRight;
 		phi = nextPhi;
@@ -186,8 +194,8 @@ void MyDrawSphereWiresPortion(Quaternion q, Vector3 center, float radius, float 
 		Vector3 bottomLeft = vertexBufferTheta[n];
 		Vector3 bottomRight = vertexBufferTheta[n + 1];
 
-		rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-		rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
+		vertex(bottomLeft);
+		vertex(bottomRight);
 	}
 
 	rlEnd();
@@ -227,13 +235,13 @@ void MyDrawCylinderPortion(Quaternion q, Vector3 start, Vector3 end, float radiu
 		Vector3 bottomRight = Cylindrical{ 1, nextTheta, 0 }.toCartesian();
 		Vector3 topRight = { bottomRight.x, 1, bottomRight.z };
 
-		rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-		rlVertex3f(topRight.x, topRight.y, topRight.z);
-		rlVertex3f(topLeft.x, topLeft.y, topLeft.z);
+		vertex(bottomLeft);
+		vertex(topRight);
+		vertex(topLeft);
 
-		rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-		rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
-		rlVertex3f(topRight.x, topRight.y, topRight.z);
+		vertex(bottomLeft);
+		vertex(bottomRight);
+		vertex(topRight);
 
 		theta = nextTheta;
 		tmpBottomLeft = bottomRight;
@@ -288,15 +296,15 @@ void MyDrawCylinderWiresPortion(Quaternion q, Vector3 start, Vector3 end, float 
 		Vector3 bottomRight = Cylindrical{ 1, nextTheta, 0 }.toCartesian();
 		Vector3 topRight = { bottomRight.x, 1, bottomRight.z };
 
-		rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-		rlVertex3f(topLeft.x, topLeft.y, topLeft.z);
+		vertex(bottomLeft);
+		vertex(topLeft);
 
-		if (capsType != CYLINDER_CAPS_FLAT) {
-			rlVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
-            rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
+		if (capsType == CYLINDER_CAPS_NONE) {
+			vertex(bottomLeft);
+            vertex(bottomRight);
 
-            rlVertex3f(topLeft.x, topLeft.y, topLeft.z);
-            rlVertex3f(topRight.x, topRight.y, topRight.z);
+            vertex(topLeft);
+            vertex(topRight);
 		}
 
 		theta = nextTheta;
@@ -306,8 +314,8 @@ void MyDrawCylinderWiresPortion(Quaternion q, Vector3 start, Vector3 end, float 
 	Vector3 bottomRight = tmpBottomLeft;
 	Vector3 topRight = { bottomRight.x, 1, bottomRight.z };
 
-	rlVertex3f(bottomRight.x, bottomRight.y, bottomRight.z);
-	rlVertex3f(topRight.x, topRight.y, topRight.z);
+	vertex(bottomRight);
+	vertex(topRight);
 
 	if (capsType == CYLINDER_CAPS_FLAT) {
 		Quaternion aroundX = QuaternionFromAxisAngle({ 1, 0, 0 }, PI);
@@ -353,9 +361,9 @@ void MyDrawDiskPortion(Quaternion q, Vector3 center, float radius, float startSe
 		Vector3 left = tmpLeft;
 		Vector3 right = Cylindrical{ 1, nextTheta, 0 }.toCartesian();
 
-		rlVertex3f(0, 0, 0);
-		rlVertex3f(left.x, left.y, left.z);
-		rlVertex3f(right.x, right.y, right.z);
+		vertex(0, 0, 0);
+		vertex(left);
+		vertex(right);
 
 		theta = nextTheta;
 		tmpLeft = right;
@@ -392,11 +400,11 @@ void MyDrawDiskWiresPortion(Quaternion q, Vector3 center, float radius, float st
 		Vector3 left = tmpLeft;
 		Vector3 right = Cylindrical{ 1, nextTheta, 0 }.toCartesian();
 
-		rlVertex3f(left.x, left.y, left.z);
-		rlVertex3f(right.x, right.y, right.z);
+		vertex(left);
+		vertex(right);
 
-		rlVertex3f(0, 0, 0);
-		rlVertex3f(left.x, left.y, left.z);
+		vertex(0, 0, 0);
+		vertex(left);
 
 		theta = nextTheta;
 		tmpLeft = right;
@@ -404,8 +412,8 @@ void MyDrawDiskWiresPortion(Quaternion q, Vector3 center, float radius, float st
 
 	Vector3 right = tmpLeft;
 
-	rlVertex3f(0, 0, 0);
-	rlVertex3f(right.x, right.y, right.z);
+	vertex(0, 0, 0);
+	vertex(right);
 
 	rlEnd();
 	rlPopMatrix();

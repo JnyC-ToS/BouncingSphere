@@ -32,6 +32,7 @@
 #endif
 
 #define GRAVITY 10
+#define MASS 2
 
 struct Obstacle {
 	Referential ref;
@@ -66,6 +67,9 @@ struct Ball {
 	float r;
 	Vector3 pos;
 	Vector3 motion;
+	Vector3 rotationAxis;
+	float rotationAngle;
+	Quaternion rotationQuaternion;
 	Quaternion rotation;
 	Color color;
 
@@ -78,22 +82,54 @@ Ball NewBall(Vector3 pos, Color color) {
 	return {
 		0.75f + random() / 2,
 		pos,
-		Vector3Scale(Vector3Normalize({ randPos(), 9 * random() / 10 - 1, randPos() }), 5 + 3 * random()),
+		!Vector3{ randPos(), 9 * random() / 10 - 1, randPos() } * (5 + 3 * random()),
+		{ 0, 0, 0 },
+		0,
+		QuaternionIdentity(),
 		QuaternionIdentity(),
 		color
 	};
 }
 
-bool Collide(Vector3 a, Vector3 b, Boxes boxes, Ball* ball, int except) {
+void Bounce(Ball* ball, Vector3 point, Vector3 normal, float dt) {
+	Vector3 old = ball->motion;
+	ball->motion = ball->motion / normal;
+	Vector3 deltaMotion = old - ball->motion;
+	ball->rotationAxis = ball->rotationAxis + MASS * (point ^ deltaMotion);
+	float i = 2 * MASS * ball->r * ball->r / 5;
+	ball->rotationAngle = ball->rotationAngle + Vector3Length(ball->rotationAxis) * dt / i;
+	ball->rotationQuaternion = QuaternionFromAxisAngle(!ball->rotationAxis, ball->rotationAngle);
+}
+
+bool StaticCollide(Boxes boxes, Ball* ball, float dt) {
+	for (auto box : boxes) {
+		Vector3 pos = GlobalToLocalPos(ball->pos, box.ref);
+		Vector3 posInBox = {
+			Clamp(pos.x, -box.ext.x, box.ext.x),
+			Clamp(pos.y, -box.ext.y, box.ext.y),
+			Clamp(pos.z, -box.ext.z, box.ext.z)
+		};
+		Vector3 bounce = pos - posInBox;
+		if (~bounce < box.r * box.r - EPSILON) {
+			Vector3 normal = !bounce;
+			ball->pos = LocalToGlobalPos(posInBox + normal * box.r, box.ref);
+			Bounce(ball, ball->pos, normal, dt);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool DynamicCollide(Vector3 a, Vector3 b, Boxes boxes, Ball* ball, float dt, size_t except = -1) {
 	Segment segment = { a, b };
-	int count = boxes.size();
-	for (int i = 0; i < count; i++) {
+	size_t count = boxes.size();
+	for (size_t i = 0; i < count; i++) {
 		Vector3 interPt;
 		Vector3 interNormal;
 		if (i != except && IntersectSegmentBoxRounded(segment, boxes[i], interPt, interNormal)) {
-			Vector3 c = Vector3Reflect(Vector3Subtract(b, interPt), interNormal);
-			ball->motion = Vector3Reflect(ball->motion, interNormal);
-			Collide(interPt, Vector3Add(interPt, c), boxes, ball, i);
+			Vector3 c = (b - interPt) / interNormal;
+			Bounce(ball, interPt, interNormal, dt);
+			DynamicCollide(interPt, interPt + c, boxes, ball, dt, i);
 			return true;
 		}
 	}
@@ -102,12 +138,12 @@ bool Collide(Vector3 a, Vector3 b, Boxes boxes, Ball* ball, int except) {
 }
 
 bool MoveBall(Ball* ball, Obstacles obstacles, float dt) {
-	Vector3 b = Vector3Add(ball->pos, Vector3Scale(ball->motion, dt));
-	int count = obstacles.size();
+	Vector3 b = ball->pos + ball->motion * dt;
+	size_t count = obstacles.size();
 	Boxes boxes(count);
-	for (int i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 		boxes[i] = obstacles[i].withRadius(ball->r);
-	return Collide(ball->pos, b, boxes, ball, -1);
+	return StaticCollide(boxes, ball, dt) || DynamicCollide(ball->pos, b, boxes, ball, dt);
 }
 
 void MyUpdateOrbitalCamera(Camera* camera, float deltaTime) {
@@ -154,7 +190,7 @@ int main(int argc, char* argv[]) {
 
 	SetTargetFPS(60);
 
-	//CAMERA
+	// CAMERA
 	Vector3 cameraPos = { 8.0f, 15.0f, 14.0f };
 	Camera camera;
 	camera.position = cameraPos;
@@ -167,22 +203,19 @@ int main(int argc, char* argv[]) {
 	//--------------------------------------------------------------------------------------
 
 	Ball ball = NewBall({ 0, 0, 0 }, BLUE);
-	Obstacles obstacles(6);
-	obstacles[0] = { localReferential({ 0, -10.5, 0 }, QuaternionIdentity()), { 10, 0.5, 10 }, 0, PINK };
-	obstacles[1] = { localReferential({ 0, 10.5, 0 }, QuaternionIdentity()), { 10, 0.5, 10 }, 0, { 0, 0, 0, 0 } };
-	obstacles[2] = { localReferential({ -10.5, 0, 0 }, QuaternionIdentity()), { 0.5, 10, 10 }, 0, PINK };
-	obstacles[3] = { localReferential({ 10.5, 0, 0 }, QuaternionIdentity()), { 0.5, 10, 10 }, 0, PINK };
-	obstacles[4] = { localReferential({ 0, 0, -10.5 }, QuaternionIdentity()), { 10, 10, 0.5 }, 0, PINK };
-	obstacles[5] = { localReferential({ 0, 0, 10.5 }, QuaternionIdentity()), { 10, 10, 0.5 }, 0, PINK };
+	Obstacles obstacles(0);
 
 	for (int x = -5; x <= 5; x += 5)
 		for (int z = -5; z <= 5; z += 5)
 			obstacles.push_back(NewObstacle({ (float) x, -5, (float) z }));
 
-	//ball.r = 1;
-	//ball.pos = { 2.847386, -4.941321, -4.071001 };
-	//ball.motion = { 8.174915, 3.608876, -6.956378 };
-	//obstacles.push_back({ localReferential({ 0, 0, 0 }, QuaternionIdentity()), { 2, 2, 2 }, 0, ORANGE });
+	Color transparentPink = { 255, 109, 194, 128 };
+	obstacles.push_back({ localReferential({ 0, -10.5, 0 }, QuaternionIdentity()), { 10, 0.5, 10 }, 0, transparentPink });
+    obstacles.push_back({ localReferential({ 0, 10.5, 0 }, QuaternionIdentity()), { 10, 0.5, 10 }, 0, BLANK });
+    obstacles.push_back({ localReferential({ -10.5, 0, 0 }, QuaternionIdentity()), { 0.5, 10, 10 }, 0, transparentPink });
+    obstacles.push_back({ localReferential({ 10.5, 0, 0 }, QuaternionIdentity()), { 0.5, 10, 10 }, 0, transparentPink });
+    obstacles.push_back({ localReferential({ 0, 0, -10.5 }, QuaternionIdentity()), { 10, 10, 0.5 }, 0, transparentPink });
+    obstacles.push_back({ localReferential({ 0, 0, 10.5 }, QuaternionIdentity()), { 10, 10, 0.5 }, 0, transparentPink });
 
 	// Main game loop
 	while (!WindowShouldClose()) { // Detect window close button or ESC key
@@ -200,79 +233,17 @@ int main(int argc, char* argv[]) {
 
 		BeginMode3D(camera);
 		{
-			//3D REFERENTIAL
-			/*DrawGrid(20, 1.0f); // Draw a grid
-			DrawLine3D({  0 }, { 0, 10, 0 }, DARKGRAY);
-			DrawSphere({ 10, 0, 0 }, .2f, RED);
-			DrawSphere({ 0, 10, 0 }, .2f, GREEN);
-			DrawSphere({ 0, 0, 10 }, .2f, BLUE);*/
-		
-			//Quaternion qOrient = QuaternionFromAxisAngle(Vector3Normalize({ 1, 3, -4 }), time);
-			//MyDrawSphere(qOrient, { 0, 2, 0 }, 3, 20, 20, BLUE);
-			// MyDrawSphereWiresEx2(qOrient, { 0, 2, 0 }, 3, 20, 20, BLACK);
-			
-			// Sphere sphere = { { 0, 1, 2 }, 3 };
-			// sphere.draw(qOrient, BLUE);
-			/*Cylinder cylinder = { { 0, 1, 2 }, { 1, 4, 3 }, 3 };
-			cylinder.draw(cylinder.quaternionFromAxisAngle(time), BLUE, CYLINDER_CAPS_ROUNDED);
-			Segment segment = { { 4, 6, -1 - 5 * sinf(time / 6) }, { -3, -1, 0 } };
-			segment.draw();
-			Vector3 interPt;
-			Vector3 interNormal;
-			// if (IntersectSegmentSphere(segment, sphere, interPt, interNormal)) {
-			if (IntersectSegmentCylinderRounded(segment, cylinder, interPt, interNormal)) {
-				dist = Vector3Distance(cylinder.pt2, interPt);
-				MyDrawSphere(QuaternionIdentity(), interPt, .1f, 10, 10, RED);
-				DrawLine3D(interPt, Vector3Add(interPt, interNormal), GREEN);
-			}
-
-			Vector3 top = Vector3Add(cylinder.pt1, Vector3Scale(cylinder.axisNormalized(), cylinder.r + Vector3Length(cylinder.axis())));
-			DrawSphere(top, 0.5, RED);*/
-			//Quaternion q = QuaternionFromAxisAngle(Vector3Normalize({ 1, 3, -4 }), time);
-			//Quaternion q = QuaternionIdentity();
-			//MyDrawDisk(q, { 0, 2, 0 }, 3, 20, GREEN); 
-			//MyDrawDisk({0} ,interPt ,.2f ,10,PINK);
-			//MyDrawDiskWires(q,{0,2,0},3,20,BLACK);
-
-			//MyDrawSpherePortion(q,{0,2,0},3,0,PI,20,0,PI/2,20,RED);
-			//MyDrawSphereWiresPortion(q,{0,2,0},3,0,PI,20,0,PI/2,20,BLACK);
-
-			//MyDrawCylinderPortion(q, { 0, 2, 0 }, { 0, 6, 0 }, PI, PI / 2, PI, 20, true, PINK);
-			//MyDrawCylinderWiresPortion(q, { 0, 2, 0 }, { 0, 6, 0 }, PI, PI / 2, PI, 20, true, BLACK);
-
-			/*float r = 4;
-			//Sphere sphere = { { 0, 0, 0}, r };
-			//sphere.draw(QuaternionIdentity(), BLUE);
-			MyDrawSpherePortion(QuaternionIdentity(), { 0, 0, 0 }, r, 0, 2 * PI, 40, 0, PI / 2, 10, BLUE);
-			MyDrawSphereWiresPortion(QuaternionIdentity(), { 0, 0, 0 }, r, 0, 2 * PI, 40, 0, PI / 2, 10, DARKGRAY);
-			DrawSphere({ r, 0, 0 }, 0.05, BLACK);
-			DrawSphere({ 0, r, 0 }, 0.05, BLACK);
-			DrawSphere({ 0, 0, r }, 0.05, BLACK);
-			DrawSphere({ -r, 0, 0 }, 0.05, BLACK);
-			DrawSphere({ 0, -r, 0 }, 0.05, BLACK);
-			DrawSphere({ 0, 0, -r }, 0.05, BLACK);*/
-
-			/*BoxRounded box = { localReferential({ 2, 3, -1 }, QuaternionFromAxisAngle({ 4, 9, 2 }, PI / 3)), { 0.5, 1.25, 2 }, .5f };
-			box.draw(BLUE);
-			Segment segment = { { 4, 6, -3 - 4 * sinf(time / 6) }, { -3, -1, 0 } };
-			segment.draw();
-			Vector3 interPt;
-			Vector3 interNormal;
-			if (IntersectSegmentBoxRounded(segment, box, interPt, interNormal)) {
-				MyDrawSphere(QuaternionIdentity(), interPt, .1f, 10, 10, RED);
-				DrawLine3D(interPt, Vector3Add(interPt, interNormal), GREEN);
-			}*/
-
 			if (deltaTime > 0) {
 				ball.motion.y -= GRAVITY * deltaTime;
+				ball.rotation = ball.rotation * ball.rotationQuaternion;
 				bool collide = MoveBall(&ball, obstacles, deltaTime);
 				if (collide)
 					PlaySoundMulti(sounds[rand() % 4]);
 			}
 
-            for (auto obstacle : obstacles)
-                obstacle.draw();
             ball.draw();
+            for (auto obstacle : obstacles)
+	            obstacle.draw();
 		}
 		EndMode3D();
 
