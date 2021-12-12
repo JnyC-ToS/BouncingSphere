@@ -170,7 +170,7 @@
             <WarningLevel>Level3</WarningLevel>
             <Optimization>Disabled</Optimization>
             <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-            <AdditionalIncludeDirectories>$(SolutionDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(SolutionDir)raylib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
             <CompileAs>CompileAsCpp</CompileAs>
         </ClCompile>
         <Link>
@@ -187,7 +187,7 @@
             <WarningLevel>Level3</WarningLevel>
             <Optimization>Disabled</Optimization>
             <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-            <AdditionalIncludeDirectories>$(SolutionDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(SolutionDir)raylib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
             <CompileAs>CompileAsCpp</CompileAs>
         </ClCompile>
         <Link>
@@ -204,7 +204,7 @@
             <WarningLevel>Level3</WarningLevel>
             <Optimization>Disabled</Optimization>
             <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-            <AdditionalIncludeDirectories>$(SolutionDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(SolutionDir)raylib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
             <CompileAs>CompileAsCpp</CompileAs>
         </ClCompile>
         <Link>
@@ -221,7 +221,7 @@
             <WarningLevel>Level3</WarningLevel>
             <Optimization>Disabled</Optimization>
             <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-            <AdditionalIncludeDirectories>$(SolutionDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(SolutionDir)raylib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
             <CompileAs>CompileAsCpp</CompileAs>
         </ClCompile>
         <Link>
@@ -241,7 +241,7 @@
             <IntrinsicFunctions>true</IntrinsicFunctions>
             <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
             <CompileAs>CompileAsCpp</CompileAs>
-            <AdditionalIncludeDirectories>$(SolutionDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(SolutionDir)raylib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
         </ClCompile>
         <Link>
             <SubSystem>Console</SubSystem>
@@ -262,7 +262,7 @@
             <IntrinsicFunctions>true</IntrinsicFunctions>
             <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
             <CompileAs>CompileAsCpp</CompileAs>
-            <AdditionalIncludeDirectories>$(SolutionDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(SolutionDir)raylib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
         </ClCompile>
         <Link>
             <SubSystem>Console</SubSystem>
@@ -283,7 +283,7 @@
             <IntrinsicFunctions>true</IntrinsicFunctions>
             <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
             <CompileAs>CompileAsCpp</CompileAs>
-            <AdditionalIncludeDirectories>$(SolutionDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(SolutionDir)raylib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
         </ClCompile>
         <Link>
             <SubSystem>Console</SubSystem>
@@ -304,7 +304,7 @@
             <IntrinsicFunctions>true</IntrinsicFunctions>
             <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
             <CompileAs>CompileAsCpp</CompileAs>
-            <AdditionalIncludeDirectories>$(SolutionDir)..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(SolutionDir)raylib\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
         </ClCompile>
         <Link>
             <SubSystem>Console</SubSystem>
@@ -332,10 +332,13 @@
       <ClInclude Include="Utils.h" />
     </ItemGroup>
     <ItemGroup>
-      <Content Include="sounds\1.mp3" />
-      <Content Include="sounds\2.mp3" />
-      <Content Include="sounds\3.mp3" />
-      <Content Include="sounds\4.mp3" />
+      <Content Include="resources\images\github.png" />
+      <Content Include="resources\images\icon.png" />
+      <Content Include="resources\sounds\1.mp3" />
+      <Content Include="resources\sounds\2.mp3" />
+      <Content Include="resources\sounds\3.mp3" />
+      <Content Include="resources\sounds\4.mp3" />
+      <Content Include="resources\sounds\easter_egg.mp3" />
     </ItemGroup>
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
     <ImportGroup Label="ExtensionTargets">

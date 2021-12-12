@@ -11,3 +11,12 @@ bool approxZero(float val) {
 float min(float a, float b) {
 	return a < b ? a : b;
 }
+
+float modulof(float f, float mod) {
+	if (f < mod) {
+		if (f >= 0)
+			return f;
+		return modulof(f + mod, mod);
+	}
+	return modulof(f - mod, mod);
+}

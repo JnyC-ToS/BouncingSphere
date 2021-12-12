@@ -13,6 +13,7 @@
 template <typename T> int sgn(T val);
 bool approxZero(float val);
 float min(float a, float b);
+float modulof(float f, float mod);
 
 inline float random() {
 	return rand() / (float) RAND_MAX;

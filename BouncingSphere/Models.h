@@ -112,6 +112,7 @@ struct ref {
 
 	Quaternion asQuaternion() {
 		Matrix m = this->asMatrix();
+		// Identity matrix => Identity quaternion
 		if (m.m0 == 1 && m.m5 == 1 && m.m10 == 1 && m.m4 == 0 && m.m8 == 0 && m.m9 == 0 && m.m1 == 0 && m.m2 == 0 && m.m6 == 0)
 			return QuaternionIdentity();
 		return QuaternionFromMatrix(m);
