@@ -158,17 +158,17 @@ void MyUpdateOrbitalCamera(Camera* camera, float deltaTime) {
 
 	if (mouseClicked && ctrlPressed) {
 		Spherical ySph = { sphPos.rho, sphPos.theta, modulof(sphPos.phi - PI / 2, 2 * PI) };
-        if (ySph.phi > PI) {
-        	ySph.phi = 2 * PI - ySph.phi;
-        	ySph.theta += PI;
-        }
-        Vector3 y = ySph.toCartesian();
-        Vector3 x = sphPosVect ^ y;
-        Referential ref = { centerPos, !x, !y, !sphPosVect };
+		if (ySph.phi > PI) {
+			ySph.phi = 2 * PI - ySph.phi;
+			ySph.theta += PI;
+		}
+		Vector3 y = ySph.toCartesian();
+		Vector3 x = sphPosVect ^ y;
+		Referential ref = { centerPos, !x, !y, !sphPosVect };
 
-        Vector3 centerDelta = { mouseVect.x * centerSpeed.x * deltaTime, mouseVect.y * centerSpeed.y * deltaTime, 0 };
-        Vector3 newCenterPos = centerPos + LocalToGlobalVect(centerDelta, ref);
-        centerPos = newCenterPos;
+		Vector3 centerDelta = { mouseVect.x * centerSpeed.x * deltaTime, mouseVect.y * centerSpeed.y * deltaTime, 0 };
+		Vector3 newCenterPos = centerPos + LocalToGlobalVect(centerDelta, ref);
+		centerPos = newCenterPos;
 	}
 
 	camera->position = sphPosVect + centerPos;
@@ -291,23 +291,23 @@ int main(int argc, char* argv[]) {
 			BeginMode3D(camera);
 
 			// Game physics: only when window is focused and game is playing
-            if (deltaTime > 0 && IsWindowFocused() && gameState == GAME_RUNNING) {
-            	// Gravity & rotation
-            	ball.motion.y -= GRAVITY * deltaTime;
-            	ball.rotation = ball.rotation * ball.rotationQuaternion;
+			if (deltaTime > 0 && IsWindowFocused() && gameState == GAME_RUNNING) {
+				// Gravity & rotation
+				ball.motion.y -= GRAVITY * deltaTime;
+				ball.rotation = ball.rotation * ball.rotationQuaternion;
 
-            	// Collision
-            	bool collide = MoveBall(&ball, obstacles, deltaTime);
-            	if (collide && soundEffects)
-            		PlaySoundMulti(sounds[rand() % 4]);
-            }
+				// Collision
+				bool collide = MoveBall(&ball, obstacles, deltaTime);
+				if (collide && soundEffects)
+					PlaySoundMulti(sounds[rand() % 4]);
+			}
 
 			// Object drawing
-            ball.draw();
-            for (auto obstacle : obstacles)
-                obstacle.draw();
+			ball.draw();
+			for (auto obstacle : obstacles)
+				obstacle.draw();
 
-            EndMode3D();
+			EndMode3D();
 
 			// Back to title
 			const char* text = "Press ESCAPE to go back to title screen";

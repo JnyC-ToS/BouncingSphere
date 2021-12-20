@@ -258,9 +258,9 @@ void MyDrawCylinderPortion(Quaternion q, Vector3 start, Vector3 end, float radiu
 	rlPopMatrix();
 
 	if (capsType == CYLINDER_CAPS_ROUNDED) {
-        MyDrawSpherePortion(qf, start, radius, startSegments, endSegments, nSegments, PI / 2, PI, nSegments / 4, color);
-        MyDrawSpherePortion(qf, end, radius, startSegments, endSegments, nSegments, 0, PI / 2, nSegments / 4, color);
-    }
+		MyDrawSpherePortion(qf, start, radius, startSegments, endSegments, nSegments, PI / 2, PI, nSegments / 4, color);
+		MyDrawSpherePortion(qf, end, radius, startSegments, endSegments, nSegments, 0, PI / 2, nSegments / 4, color);
+	}
 }
 
 void MyDrawCylinderWires(Quaternion q, Vector3 start, Vector3 end, float radius, int nSegments, int capsType, Color color) {
@@ -301,10 +301,10 @@ void MyDrawCylinderWiresPortion(Quaternion q, Vector3 start, Vector3 end, float 
 
 		if (capsType == CYLINDER_CAPS_NONE) {
 			vertex(bottomLeft);
-            vertex(bottomRight);
+			vertex(bottomRight);
 
-            vertex(topLeft);
-            vertex(topRight);
+			vertex(topLeft);
+			vertex(topRight);
 		}
 
 		theta = nextTheta;
@@ -328,9 +328,9 @@ void MyDrawCylinderWiresPortion(Quaternion q, Vector3 start, Vector3 end, float 
 	rlPopMatrix();
 
 	if (capsType == CYLINDER_CAPS_ROUNDED) {
-    	MyDrawSphereWiresPortion(qf, start, radius, startSegments, endSegments, nSegments, PI / 2, PI, nSegments / 4, color);
-    	MyDrawSphereWiresPortion(qf, end, radius, startSegments, endSegments, nSegments, 0, PI / 2, nSegments / 4, color);
-    }
+		MyDrawSphereWiresPortion(qf, start, radius, startSegments, endSegments, nSegments, PI / 2, PI, nSegments / 4, color);
+		MyDrawSphereWiresPortion(qf, end, radius, startSegments, endSegments, nSegments, 0, PI / 2, nSegments / 4, color);
+	}
 }
 
 void MyDrawDisk(Quaternion q, Vector3 center, float radius, int nSegments, Color color) {

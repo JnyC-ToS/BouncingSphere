@@ -115,7 +115,7 @@ bool IntersectSegmentCylinderFinite(Segment segment, Cylinder cylinder, Vector3&
 		float a = ~i;
 		float b = 2 * (i * j);
 		float c = ~j - r2;
-    
+
 		float delta = b * b - 4 * a * c;
 		if (delta < -EPSILON)
 			return false;
@@ -164,7 +164,7 @@ bool IntersectSegmentCylinderRounded(Segment segment, Cylinder cylinder, Vector3
 		float a = ~i;
 		float b = 2 * (i * j);
 		float c = ~j - r2;
-    
+
 		float delta = b * b - 4 * a * c;
 		if (delta < -EPSILON)
 			return false;
@@ -251,7 +251,7 @@ Vector3 LocalToGlobalVect(Vector3 vectLocal, Referential localRef) {
 
 Referential localReferential(Vector3 origin, Quaternion q) {
 	return (Referential{
-	    { 0, 0, 0 },
+		{ 0, 0, 0 },
 		{ 1, 0, 0 },
 		{ 0, 1, 0 },
 		{ 0, 0, 1 }
